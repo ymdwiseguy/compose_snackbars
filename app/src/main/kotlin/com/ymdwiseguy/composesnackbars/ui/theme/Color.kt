@@ -134,8 +134,8 @@ private fun PrimaryColorRow(
     )
 }
 
-private @Composable
-fun SingleColorRow(
+@Composable
+private fun SingleColorRow(
     firstColor: Color,
     firstTextColor: Color,
     firstColorName: String,
@@ -159,8 +159,8 @@ fun SingleColorRow(
     }
 }
 
-private @Composable
-fun ColorBox(
+@Composable
+private fun ColorBox(
     modifier: Modifier = Modifier,
     textColor: Color,
     backgroundColor: Color,

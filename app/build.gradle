@@ -41,6 +41,10 @@ android {
         jvmTarget = '17'
     }
 
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+    }
+
     buildFeatures {
         compose true
     }
@@ -53,10 +57,6 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
-}
-
-tasks.withType(Test) {
-    useJUnitPlatform()
 }
 
 dependencies {
