@@ -1,0 +1,119 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.ymdwiseguy.composesnackbars'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.ymdwiseguy.composesnackbars"
+        minSdk 24
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+
+        vectorDrawables {
+            useSupportLibrary true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+        kotlinOptions {
+            jvmTarget = JavaVersion.VERSION_17
+        }
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        compose true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.4.5'
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}
+
+dependencies {
+
+    def coroutines = '1.6.4'
+    def composeBom = '2023.04.00'
+    def lifecycle = "2.6.1"
+    def junitVersion = "5.9.1"
+
+    // Jetpack Compose
+    implementation platform("androidx.compose:compose-bom:$composeBom")
+    implementation "androidx.compose.ui:ui"
+    implementation "androidx.compose.ui:ui-tooling-preview"
+    implementation "androidx.compose.material3:material3"
+    debugImplementation "androidx.compose.ui:ui-tooling"
+    debugImplementation "androidx.compose.ui:ui-test-manifest"
+    androidTestImplementation platform("androidx.compose:compose-bom:$composeBom")
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4"
+
+    // Integration with ViewModels
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:${lifecycle}"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:${lifecycle}"
+    implementation "androidx.lifecycle:lifecycle-runtime-compose:${lifecycle}"
+
+    // Navigation
+    implementation('dev.olshevski.navigation:reimagined:1.4.0')
+
+    // Android core components
+    implementation 'androidx.core:core-ktx:1.10.0'
+    implementation 'androidx.activity:activity-compose:1.7.0'
+    implementation "androidx.activity:activity-ktx:1.7.0"
+
+    // Koin
+    implementation 'io.insert-koin:koin-core:3.4.0'
+    implementation 'io.insert-koin:koin-android:3.4.0'
+    implementation 'io.insert-koin:koin-androidx-compose:3.4.3'
+
+    // Moshi
+    implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
+    implementation("com.squareup.moshi:moshi-adapters:1.14.0")
+
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+    implementation('com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.9')
+
+    // Datastore
+    implementation("androidx.datastore:datastore:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Testing
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+    testRuntimeOnly("org.junit.platform:junit-platform-reporting:1.9.2")
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:${kotlin_version}"
+    testImplementation 'io.mockk:mockk:1.13.4'
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines"
+}
