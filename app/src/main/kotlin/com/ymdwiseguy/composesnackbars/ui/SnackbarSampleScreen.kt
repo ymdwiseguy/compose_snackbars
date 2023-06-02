@@ -6,40 +6,38 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.ymdwiseguy.composesnackbars.ui.domain.SnackbarSeverity
+import com.ymdwiseguy.composesnackbars.ui.domain.SnackbarSeverity.ERROR
+import com.ymdwiseguy.composesnackbars.ui.domain.SnackbarSeverity.INFO
+import com.ymdwiseguy.composesnackbars.ui.domain.SnackbarViewEvent
+import com.ymdwiseguy.composesnackbars.ui.snackbar.CustomSnackbarHost
+import com.ymdwiseguy.composesnackbars.ui.snackbar.LaunchCustomSnackbar
 import com.ymdwiseguy.composesnackbars.ui.theme.ComposeSnackbarsTheme
-import java.util.UUID
-
-data class SnackBarViewEvent(
-    val message: String,
-    val eventId: UUID = UUID.randomUUID(),
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SnackbarSampleScreen() {
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackBarEvents: MutableState<SnackBarViewEvent?> = remember { mutableStateOf(null) }
+    val snackBarEvents: MutableState<SnackbarViewEvent?> = remember { mutableStateOf(null) }
 
-    fun triggerSnackbar(message: String) {
-        snackBarEvents.value = SnackBarViewEvent(message)
+    fun triggerSnackbar(message: String, severity: SnackbarSeverity) {
+        snackBarEvents.value = SnackbarViewEvent(message, severity)
     }
 
     Scaffold(
         topBar = { TopAppBar({ Text("Snackbars") }) },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { CustomSnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -47,19 +45,30 @@ fun SnackbarSampleScreen() {
                 .padding(paddingValues)
                 .padding(16.dp),
         ) {
-            Button(onClick = { triggerSnackbar("my first message") }) {
+            Button(
+                onClick = {
+                    triggerSnackbar("This is a snackbar with the severity level INFO", INFO)
+                }
+            ) {
                 Text(text = "Show Snackbar 1")
             }
-            Button(onClick = { triggerSnackbar("my second message") }) {
+            Button(
+                onClick = {
+                    triggerSnackbar("This is a snackbar with the severity level ERROR", ERROR)
+                }
+            ) {
                 Text(text = "Show Snackbar 2")
             }
         }
     }
 
     snackBarEvents.value?.let {
-        LaunchedEffect(it.eventId) {
-            snackbarHostState.showSnackbar(it.message)
-        }
+        LaunchCustomSnackbar(
+            key = it.eventId,
+            snackbarHostState = snackbarHostState,
+            message = it.message,
+            severity = it.severity,
+        )
     }
 }
 
