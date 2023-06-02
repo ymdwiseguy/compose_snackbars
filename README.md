@@ -1,13 +1,18 @@
 # Handling Snackbars in Jetpack Compose with Material 3
 
-Handling Snackbars with Jetpack Compose can be a bit tricky. Sadly you can not simply call something like `Snackbar.show("my message")`. There is some work to be done, so lets get startet!
+Handling Snackbars with Jetpack Compose can be a bit tricky. Sadly you can not simply call something like `Snackbar.show("my message")`.
+
+This is a tutorial, how to use snackbars with jetpack compose and implementing custom versions on your own.
+
+Feel free to check out the code and build the sample app to see the result in action.
+
+There is some work to be done, so lets get startet!
 
 ## The Setting
 
 First of all, we need some frame where our Snackbar should be shown. Lets asume we are inside a compose context within a screen. The frame is provided by material3 in form of a `Scaffold`, so our screen might look like this:
 
 ```
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SnackbarSampleScreen() {
 
@@ -78,7 +83,6 @@ data class SnackBarViewEvent(
     val eventId: UUID = UUID.randomUUID(),
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SnackbarSampleScreen() {
 
@@ -118,15 +122,165 @@ fun SnackbarSampleScreen() {
 
 ## And now?
 
-Done! Right? Maybe not quite yet. So far we have a nice little working example. But what does your customer/product owner/ui designer say? I guess they whant to have some styling for your snackbar. And even worse, they want to have different types of snackbars 🫣 Yep, thats business but we can handle this!
+Done! Right? Maybe not quite yet. So far we have a nice little working example. But what does your customer/product owner/ui designer say? I guess they want to have some styling for your snackbar. And even worse, they might want to have different types of snackbars 🫣
 
-### Custom Snackbars
+Yep, thats how it goes, but we can handle this!
 
-TODO
+## Custom Snackbars
 
+So now we want to customize our Snackbars AND we whant to have different Types of them. The types might for example be depending on a severity level like INFO and ERROR. Lets define this severity as an enum:
+```
+enum class SnackbarSeverity{
+    INFO, ERROR
+}
+```
+Now we want to style our Snackbar depending on the severity. We keep it simple by using an elevated card view with different text- and border- colors. Feel free to add icons or whatever you like in your own implementation.
+```
+@Composable
+fun CustomSnackbar(
+    message: String,
+    severity: SnackbarSeverity = INFO,
+) {
 
+    val color = when (severity) {
+        INFO -> colors.onSurface
+        ERROR -> colors.error
+    }
 
-### Notes:
+    ElevatedCard(
+        modifier = Modifier
+            .padding(dimensions.gapS)
+            .border(1.dp, color, shapes.small),
+        shape = shapes.small
+    ) {
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .padding(dimensions.gapL)
+        ) {
+            Text(text = message, color = color)
+        }
+    }
+}
+```
+## Connecting the pieces
+Now we need to bring the parts together. So far we know about the `SnackbarHost`, the `SnackbarHostState`, the `LaunchedEffect` and we have our own customized snackbar.
 
-- Styling the snackbar
-- providing more than just a message
+The SnackbarHost provides the snackbar in form of a function of type `@Composable (SnackbarData) -> Unit` with a default value of `{ Snackbar(it) }`. This is the place to put our own custom snackbar like this:
+```
+SnackbarHost(hostState = hostState) { snackbarData ->
+    CustomSnackbar(
+        message = snackbarData.visuals.message
+    )
+}
+```
+### SnackbarVisuals
+As you can see, the `SnackbarData` provides visuals including the message. But our severity is still missing. We have to dig even deeper to achieve our goal. We have to implement our own `SnackbarVisuals` and add whatever property we need. In our case the severity:
+```
+data class CustomSnackbarVisuals(
+    override val actionLabel: String?,
+    override val duration: SnackbarDuration,
+    override val message: String,
+    override val withDismissAction: Boolean,
+    val severity: SnackbarSeverity,
+) : SnackbarVisuals
+```
+### CustomSnackbarHost
+Our SnackbarHost connected to the visuals looks like this:
+```
+@Composable
+fun CustomSnackbarHost(hostState: SnackbarHostState) {
+    SnackbarHost(hostState = hostState) { snackbarData ->
+        CustomSnackbar(
+            message = snackbarData.visuals.message,
+            severity = (snackbarData.visuals as? CustomSnackbarVisuals)?.severity ?: SnackbarSeverity.INFO
+        )
+    }
+}
+```
+We try to cast the snackbars visuals to our own implementation and read the severity in case of success. In case of failure we provide a default value to avoid exceptions.
+### A custom launcher
+Finally we need to launch the snackbar and provide the severity and the other visuals (since we are overriding the default). For this we have our own launcher which we can call from wherever we like:
+```
+@Composable
+fun LaunchCustomSnackbar(
+    key: Any?,
+    snackbarHostState: SnackbarHostState,
+    message: String,
+    severity: SnackbarSeverity,
+) {
+    LaunchedEffect(key){
+        snackbarHostState.showSnackbar(
+            visuals = CustomSnackbarVisuals(
+                actionLabel = null,
+                duration = SnackbarDuration.Short,
+                message = message,
+                withDismissAction = false,
+                severity = severity,
+            )
+        )
+    }
+}
+```
+## Final Result
+Our final snackbar sample screen now looks like this:
+```
+@Composable
+fun SnackbarSampleScreen() {
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val snackBarEvents: MutableState<SnackbarViewEvent?> = remember {
+        mutableStateOf(null)
+    }
+
+    fun triggerSnackbar(message: String, severity: SnackbarSeverity) {
+        snackBarEvents.value = SnackbarViewEvent(message, severity)
+    }
+
+    Scaffold(
+        topBar = { TopAppBar({ Text("Snackbars") }) },
+        snackbarHost = {
+            CustomSnackbarHost(hostState = snackbarHostState)
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+        ) {
+            Button(
+                onClick = {
+                    triggerSnackbar(
+                        message = "This is a snackbar with the severity level INFO",
+                        severity = INFO
+                    )
+                }
+            ) {
+                Text(text = "Show Snackbar 1")
+            }
+            Button(
+                onClick = {
+                    triggerSnackbar(
+                        message = "This is a snackbar with the severity level ERROR",
+                        severity = ERROR
+                    )
+                }
+            ) {
+                Text(text = "Show Snackbar 2")
+            }
+        }
+    }
+
+    snackBarEvents.value?.let {
+        LaunchCustomSnackbar(
+            key = it.eventId,
+            snackbarHostState = snackbarHostState,
+            message = it.message,
+            severity = it.severity,
+        )
+    }
+}
+```
+Now you know how to implement you own customized Snackbars with Jetpack Compose. Personally I find it quite complicated but this seems to be the intended way to go. On the bright side, you have to implement this stuff only once and can reuse it all over your app 😉
+
+You can also define other stuff like an action to dismiss the snackbar in the visuals, but I did not want to make things even mor complicated in this tutorial.

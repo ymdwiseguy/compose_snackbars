@@ -47,14 +47,20 @@ fun SnackbarSampleScreen() {
         ) {
             Button(
                 onClick = {
-                    triggerSnackbar("This is a snackbar with the severity level INFO", INFO)
+                    triggerSnackbar(
+                        message = "This is a snackbar with the severity level INFO",
+                        severity = INFO
+                    )
                 }
             ) {
                 Text(text = "Show Snackbar 1")
             }
             Button(
                 onClick = {
-                    triggerSnackbar("This is a snackbar with the severity level ERROR", ERROR)
+                    triggerSnackbar(
+                        message = "This is a snackbar with the severity level ERROR",
+                        severity = ERROR
+                    )
                 }
             ) {
                 Text(text = "Show Snackbar 2")
