@@ -212,7 +212,7 @@ fun CustomSnackbarHost(hostState: SnackbarHostState) {
     SnackbarHost(hostState = hostState) { snackbarData ->
         CustomSnackbar(
             message = snackbarData.visuals.message,
-            severity = (snackbarData.visuals as? CustomSnackbarVisuals)?.severity ?: SnackbarSeverity.INFO
+            severity = (snackbarData.visuals as? CustomSnackbarVisuals)?.severity ?: INFO
         )
     }
 }
